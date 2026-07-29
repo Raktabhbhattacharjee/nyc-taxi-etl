@@ -39,14 +39,14 @@ The project demonstrates real-world backend engineering patterns in ETL, relatio
 The diagram below shows the actual end-to-end flow implemented in this repository.
 
 ```mermaid
-flowchart TB
-    raw["Raw NYC TLC CSV"]
-    etl["ETL Pipeline\n(etl/)"]
-    db["PostgreSQL"]
-    api["FastAPI\n(api/)"]
-    dashboard["Streamlit Dashboard\n(dashboard/)"]
+flowchart LR
+    A["1. Raw CSV Files<br/>data/raw/"] --> B["2. ETL Processing<br/>extract → validate → clean → transform → load"]
+    B --> C["3. PostgreSQL Database<br/>yellow_taxi_trips"]
+    C --> D["4. FastAPI Backend<br/>analytics and trip endpoints"]
+    D --> E["5. Streamlit Dashboard<br/>overview and analytics pages"]
 
-    raw --> etl --> db --> api --> dashboard
+    B --> F["6. Data Quality Checks<br/>quarantine invalid rows"]
+    F --> C
 ```
 
 ---
@@ -122,8 +122,9 @@ flowchart TB
 The following Mermaid diagram documents the repository layout and the location of each major component.
 
 ```mermaid
-flowchart TB
+flowchart TD
     root["nyc_taxi_etl/"]
+
     root --> alembic["alembic/"]
     root --> api["api/"]
     root --> dashboard["dashboard/"]
@@ -133,41 +134,37 @@ flowchart TB
     root --> pyproject["pyproject.toml"]
     root --> envfile[".env"]
 
-    alembic --> envpy["env.py"]
-    alembic --> alembicreadme["README"]
-    alembic --> versions["versions/"]
-    versions --> versionfile["70630161b925_create_yellow_taxi_trips_table.py"]
+    alembic --> migrations["versions/"]
+    migrations --> migrationfile["70630161b925_create_yellow_taxi_trips_table.py"]
 
-    api --> deps["deps.py"]
-    api --> mainapp["main.py"]
     api --> routes["routes/"]
-    api --> schemas["schemas.py"]
     routes --> analytics["analytics.py"]
     routes --> health["health.py"]
     routes --> trips["trips.py"]
+    api --> schemas["schemas.py"]
+    api --> deps["deps.py"]
 
-    dashboard --> api_client["api.py"]
-    dashboard --> app["app.py"]
     dashboard --> pages["pages/"]
-    pages --> page1["1_Overview.py"]
-    pages --> page2["2_Demand_Analytics.py"]
-    pages --> page3["3_Location_Analytics.py"]
-    pages --> page4["4_Trip_Details.py"]
-    dashboard --> utils["utils.py"]
+    pages --> overview["1_Overview.py"]
+    pages --> demand["2_Demand_Analytics.py"]
+    pages --> location["3_Location_Analytics.py"]
+    pages --> details["4_Trip_Details.py"]
+    dashboard --> appfile["app.py"]
+    dashboard --> utilsfile["utils.py"]
 
-    data --> raw["raw/"]
-    raw --> sample["yellow_tripdata_2026-01-sample-100.csv"]
-    raw --> full["yellow_tripdata_2026-01.csv"]
+    data --> rawdata["raw/"]
+    rawdata --> samplecsv["yellow_tripdata_2026-01-sample-100.csv"]
+    rawdata --> fullcsv["yellow_tripdata_2026-01.csv"]
 
-    etl --> clean["clean.py"]
-    etl --> config["config.py"]
-    etl --> database["database.py"]
-    etl --> extract["extract.py"]
-    etl --> load["load.py"]
-    etl --> models["models.py"]
-    etl --> pipeline["pipeline.py"]
-    etl --> transform["transform.py"]
-    etl --> validate["validate.py"]
+    etl --> extractfile["extract.py"]
+    etl --> validatefile["validate.py"]
+    etl --> cleanfile["clean.py"]
+    etl --> transformfile["transform.py"]
+    etl --> loadfile["load.py"]
+    etl --> modelfile["models.py"]
+    etl --> pipelinefile["pipeline.py"]
+    etl --> configfile["config.py"]
+    etl --> dbfile["database.py"]
 ```
 
 ### Directory Purpose
@@ -550,31 +547,63 @@ python -m venv .venv
 .venv\Scripts\activate
 ```
 
-### Install dependencies with pip
+### Install dependencies with `uv` (recommended)
+
+If you prefer `uv`, this project can be set up without using `pip` directly:
+
+```bash
+uv venv
+.venv\Scripts\activate
+uv pip install -e .
+```
+
+### Add a new package with `uv`
+
+When you want to add a dependency to this project, use:
+
+```bash
+uv add <package-name>
+```
+
+Example:
+
+```bash
+uv add requests
+```
+
+This updates the project's dependency list in a `uv`-friendly way.
+
+### Alternative: install with `pip`
+
+If you still want to use `pip`, the equivalent commands are:
 
 ```bash
 python -m pip install --upgrade pip
 python -m pip install -e .
 ```
 
-### Use `pip` and `uv`/`uvicorn`
+### Run the app with `uv`
 
-- Install Python packages into the active virtual environment with:
+You can run the FastAPI backend and ETL scripts through `uv` as well:
 
 ```bash
-python -m pip install -e .
+uv run python -m uvicorn api.main:app --reload
 ```
 
-- Run the FastAPI app with Uvicorn using the current Python interpreter:
+For the ETL pipeline:
+
+```bash
+uv run python main.py
+```
+
+If you prefer the plain Python/venv workflow, these also work:
 
 ```bash
 python -m uvicorn api.main:app --reload
 ```
 
-- If your virtual environment exposes the `uvicorn` script, you can also run:
-
 ```bash
-uvicorn api.main:app --reload
+python main.py
 ```
 
 ### Configure PostgreSQL
@@ -755,12 +784,3 @@ These are future opportunities, not current features.
 This project is released under the MIT License.
 
 > TODO: add LICENSE file if needed.
-
----
-
-## Author
-
-- GitHub: `TODO`
-- LinkedIn: `TODO`
-- Portfolio: `TODO`
-- Email: `TODO`
