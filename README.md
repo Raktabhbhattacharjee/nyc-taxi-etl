@@ -36,37 +36,36 @@ The project demonstrates real-world backend engineering patterns in ETL, relatio
 
 ## System Architecture
 
-```
-Raw NYC TLC CSV
-↓
-ETL Pipeline (`etl/`)
-↓
-PostgreSQL
-↓
-FastAPI (`api/`)
-↓
-Streamlit Dashboard (`dashboard/`)
-```
+The diagram below shows the actual end-to-end flow implemented in this repository.
 
-![Architecture Diagram](TODO-architecture-diagram.png)
+```mermaid
+flowchart TB
+    raw["Raw NYC TLC CSV"]
+    etl["ETL Pipeline\n(etl/)"]
+    db["PostgreSQL"]
+    api["FastAPI\n(api/)"]
+    dashboard["Streamlit Dashboard\n(dashboard/)"]
+
+    raw --> etl --> db --> api --> dashboard
+```
 
 ---
 
 ## Technology Stack
 
-| Layer | Technology |
-|---|---|
-| Programming Language | Python 3.13+ |
-| Data Processing | pandas |
-| API Framework | FastAPI |
-| Dashboard | Streamlit |
-| Database | PostgreSQL |
-| ORM | SQLAlchemy 2.0 |
-| Migrations | Alembic |
-| Settings | pydantic-settings |
-| HTTP Server | Uvicorn |
-| HTTP Client | requests |
-| Version Control | Git / GitHub |
+| Layer                | Technology        |
+| -------------------- | ----------------- |
+| Programming Language | Python 3.13+      |
+| Data Processing      | pandas            |
+| API Framework        | FastAPI           |
+| Dashboard            | Streamlit         |
+| Database             | PostgreSQL        |
+| ORM                  | SQLAlchemy 2.0    |
+| Migrations           | Alembic           |
+| Settings             | pydantic-settings |
+| HTTP Server          | Uvicorn           |
+| HTTP Client          | requests          |
+| Version Control      | Git / GitHub      |
 
 ---
 
@@ -114,6 +113,59 @@ Streamlit Dashboard (`dashboard/`)
 ├── main.py
 ├── pyproject.toml
 └── .env
+```
+
+### Project Folder Structure Diagram
+
+The following Mermaid diagram documents the repository layout and the location of each major component.
+
+```mermaid
+flowchart TB
+    root["nyc_taxi_etl/"]
+    root --> alembic["alembic/"]
+    root --> api["api/"]
+    root --> dashboard["dashboard/"]
+    root --> data["data/"]
+    root --> etl["etl/"]
+    root --> mainpy["main.py"]
+    root --> pyproject["pyproject.toml"]
+    root --> envfile[".env"]
+
+    alembic --> envpy["env.py"]
+    alembic --> alembicreadme["README"]
+    alembic --> versions["versions/"]
+    versions --> versionfile["70630161b925_create_yellow_taxi_trips_table.py"]
+
+    api --> deps["deps.py"]
+    api --> mainapp["main.py"]
+    api --> routes["routes/"]
+    api --> schemas["schemas.py"]
+    routes --> analytics["analytics.py"]
+    routes --> health["health.py"]
+    routes --> trips["trips.py"]
+
+    dashboard --> api_client["api.py"]
+    dashboard --> app["app.py"]
+    dashboard --> pages["pages/"]
+    pages --> page1["1_Overview.py"]
+    pages --> page2["2_Demand_Analytics.py"]
+    pages --> page3["3_Location_Analytics.py"]
+    pages --> page4["4_Trip_Details.py"]
+    dashboard --> utils["utils.py"]
+
+    data --> raw["raw/"]
+    raw --> sample["yellow_tripdata_2026-01-sample-100.csv"]
+    raw --> full["yellow_tripdata_2026-01.csv"]
+
+    etl --> clean["clean.py"]
+    etl --> config["config.py"]
+    etl --> database["database.py"]
+    etl --> extract["extract.py"]
+    etl --> load["load.py"]
+    etl --> models["models.py"]
+    etl --> pipeline["pipeline.py"]
+    etl --> transform["transform.py"]
+    etl --> validate["validate.py"]
 ```
 
 ### Directory Purpose
@@ -170,19 +222,134 @@ Streamlit Dashboard (`dashboard/`)
 
 - No foreign key relationships are defined in the current schema.
 
+### Database ER Diagram
+
+The following ER diagram is generated from the SQLAlchemy model in `etl/models.py` and matches the current database schema.
+
+```mermaid
+erDiagram
+    YELLOW_TAXI_TRIPS {
+        int id PK
+        int vendor_id
+        datetime tpep_pickup_datetime
+        datetime tpep_dropoff_datetime
+        date pickup_date
+        int pickup_hour
+        varchar pickup_day_name
+        numeric trip_duration_minutes
+        int passenger_count
+        numeric trip_distance
+        numeric fare_per_mile
+        int ratecode_id
+        varchar store_and_fwd_flag
+        int pu_location_id
+        int do_location_id
+        int payment_type
+        numeric fare_amount
+        numeric extra
+        numeric mta_tax
+        numeric tip_amount
+        numeric tolls_amount
+        numeric improvement_surcharge
+        numeric total_amount
+        numeric congestion_surcharge
+        numeric airport_fee
+        numeric cbd_congestion_fee
+    }
+```
+
+### UML Class Diagram
+
+This UML class diagram represents the SQLAlchemy ORM model used for loading and querying processed trips.
+
+```mermaid
+classDiagram
+    class YellowTaxiTrip {
+        +int id
+        +int vendor_id
+        +datetime tpep_pickup_datetime
+        +datetime tpep_dropoff_datetime
+        +date pickup_date
+        +int pickup_hour
+        +string pickup_day_name
+        +Decimal trip_duration_minutes
+        +int? passenger_count
+        +Decimal? trip_distance
+        +Decimal? fare_per_mile
+        +int? ratecode_id
+        +string? store_and_fwd_flag
+        +int pu_location_id
+        +int do_location_id
+        +int payment_type
+        +Decimal? fare_amount
+        +Decimal? extra
+        +Decimal? mta_tax
+        +Decimal? tip_amount
+        +Decimal? tolls_amount
+        +Decimal? improvement_surcharge
+        +Decimal? total_amount
+        +Decimal? congestion_surcharge
+        +Decimal? airport_fee
+        +Decimal? cbd_congestion_fee
+    }
+```
+
 ### Indexes
 
 - Only the primary key index on `id` is implemented.
-
-![Database ER Diagram](TODO-database-er-diagram.png)
-
-![UML Diagram](TODO-uml-diagram.png)
 
 ---
 
 ## ETL Pipeline
 
 The ETL workflow is implemented in `etl/pipeline.py` and it runs through five explicit stages.
+
+### ETL Workflow Diagram
+
+The diagram below shows the exact stage sequence used by the ETL pipeline.
+
+```mermaid
+flowchart TB
+    extraction["Extraction\n(etl/extract.py)"]
+    validation["Validation\n(etl/validate.py)"]
+    cleaning["Cleaning\n(etl/clean.py)"]
+    transformation["Transformation\n(etl/transform.py)"]
+    loading["Loading\n(etl/load.py)"]
+
+    extraction --> validation --> cleaning --> transformation --> loading
+```
+
+### Data Lifecycle Diagram
+
+Raw data is validated, cleaned, transformed, and loaded into PostgreSQL before being exposed via the API and dashboard.
+
+```mermaid
+flowchart TB
+    raw["Raw CSV Data"]
+    validation["Validation"]
+    cleaning["Cleaning"]
+    transformation["Transformation"]
+    postgres["PostgreSQL"]
+    rest["REST API"]
+    dashboard["Streamlit Dashboard"]
+
+    raw --> validation --> cleaning --> transformation --> postgres --> rest --> dashboard
+```
+
+### Application Workflow Diagram
+
+A typical user request travels from the dashboard through the API to the database and back.
+
+```mermaid
+flowchart TB
+    user["User"]
+    dashboard["Streamlit Dashboard"]
+    api["FastAPI Backend"]
+    postgres["PostgreSQL"]
+
+    user --> dashboard --> api --> postgres
+    postgres --> api --> dashboard --> user
+```
 
 ### Extraction
 
@@ -296,16 +463,16 @@ The API exposes read-only analytics and health endpoints.
 
 ### Endpoints
 
-| Method | Path | Description |
-|---|---|---|
-| GET | `/health` | Health check and DB connectivity test |
-| GET | `/trips` | Fetch up to 200 processed trips |
-| GET | `/analytics/trips-per-day` | Daily trip count summary |
-| GET | `/analytics/trips-by-payment-type` | Trip count by payment method |
-| GET | `/analytics/trips-by-vendor` | Trip count by vendor |
-| GET | `/analytics/hourly-demand` | Trip count by pickup hour |
-| GET | `/analytics/top-pickup-locations` | Top pickup location counts |
-| GET | `/analytics/top-dropoff-locations` | Top dropoff location counts |
+| Method | Path                               | Description                           |
+| ------ | ---------------------------------- | ------------------------------------- |
+| GET    | `/health`                          | Health check and DB connectivity test |
+| GET    | `/trips`                           | Fetch up to 200 processed trips       |
+| GET    | `/analytics/trips-per-day`         | Daily trip count summary              |
+| GET    | `/analytics/trips-by-payment-type` | Trip count by payment method          |
+| GET    | `/analytics/trips-by-vendor`       | Trip count by vendor                  |
+| GET    | `/analytics/hourly-demand`         | Trip count by pickup hour             |
+| GET    | `/analytics/top-pickup-locations`  | Top pickup location counts            |
+| GET    | `/analytics/top-dropoff-locations` | Top dropoff location counts           |
 
 ### Request and Response
 
@@ -317,6 +484,22 @@ The API exposes read-only analytics and health endpoints.
 
 - Available via FastAPI at `/docs`.
 - Includes OpenAPI metadata for each endpoint and response model.
+
+### FastAPI Request Flow
+
+The FastAPI routes use the `get_db` dependency in `api/deps.py` and query PostgreSQL directly through SQLAlchemy.
+
+```mermaid
+sequenceDiagram
+    participant Browser
+    participant FastAPI
+    participant Database
+
+    Browser->>FastAPI: GET /trips or /analytics/*
+    FastAPI->>Database: SQLAlchemy session query
+    Database-->>FastAPI: query results
+    FastAPI-->>Browser: JSON response
+```
 
 ---
 
@@ -358,24 +541,21 @@ git clone <repository-url>
 cd nyc_taxi_etl
 ```
 
-### Create virtual environment
+### Create and activate a virtual environment
 
 ```bash
 python -m venv .venv
-```
-
-### Activate environment
-
-```powershell
 .venv\Scripts\activate
 ```
 
-### Install dependencies
+### Install dependencies with pip
 
 ```bash
 python -m pip install --upgrade pip
 python -m pip install -e .
 ```
+
+> Use `pip` for dependency installation and `uvicorn` for running the FastAPI app.
 
 ### Configure PostgreSQL
 
@@ -396,25 +576,25 @@ alembic upgrade head
 - Development dataset: `data/raw/yellow_tripdata_2026-01-sample-100.csv`
 - Production dataset: `data/raw/yellow_tripdata_2026-01.csv`
 
-### Run ETL
+### Run the ETL pipeline
 
 ```bash
 python main.py
 ```
 
-### Run FastAPI
+### Run the FastAPI backend with uvicorn
 
 ```bash
 uvicorn api.main:app --reload
 ```
 
-### Run Streamlit
+### Run the Streamlit dashboard
 
 ```bash
 streamlit run dashboard/app.py
 ```
 
-### Verify application
+### Verify the services
 
 - `http://127.0.0.1:8000/docs`
 - `http://127.0.0.1:8000/health`
@@ -482,19 +662,6 @@ Expected output includes:
 - `http://127.0.0.1:8000/health`
 - `http://127.0.0.1:8000/trips?limit=20`
 - `http://127.0.0.1:8000/docs`
-
----
-
-## Screenshots
-
-- ![Architecture Diagram](TODO-architecture-diagram.png)
-- ![UML Diagram](TODO-uml-diagram.png)
-- ![Database Schema](TODO-database-schema.png)
-- ![ETL Output](TODO-etl-output.png)
-- ![Swagger UI](TODO-swagger-ui.png)
-- ![Dashboard Home](TODO-dashboard-home.png)
-- ![Trip Explorer](TODO-trip-explorer.png)
-- ![Database Table](TODO-database-table.png)
 
 ---
 
