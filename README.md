@@ -111,6 +111,8 @@ flowchart TB
 │   ├── validate.py
 │   └── __init__.py
 ├── main.py
+├── notebooks/
+│   └── 01_data_profiling.ipynb
 ├── pyproject.toml
 └── .env
 ```
@@ -555,7 +557,25 @@ python -m pip install --upgrade pip
 python -m pip install -e .
 ```
 
-> Use `pip` for dependency installation and `uvicorn` for running the FastAPI app.
+### Use `pip` and `uv`/`uvicorn`
+
+- Install Python packages into the active virtual environment with:
+
+```bash
+python -m pip install -e .
+```
+
+- Run the FastAPI app with Uvicorn using the current Python interpreter:
+
+```bash
+python -m uvicorn api.main:app --reload
+```
+
+- If your virtual environment exposes the `uvicorn` script, you can also run:
+
+```bash
+uvicorn api.main:app --reload
+```
 
 ### Configure PostgreSQL
 
@@ -593,6 +613,13 @@ uvicorn api.main:app --reload
 ```bash
 streamlit run dashboard/app.py
 ```
+
+### Open the data profiling notebook
+
+The data profiling notebook is included at `notebooks/01_data_profiling.ipynb`.
+It loads the raw dataset from `data/raw/yellow_tripdata_2026-01.csv` and helps inspect the schema, missing values, duplicates, datetime parsing, and categorical distributions.
+
+Run it in VS Code or Jupyter to review raw data quality before changing ETL rules.
 
 ### Verify the services
 
