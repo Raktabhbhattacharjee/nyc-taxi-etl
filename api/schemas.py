@@ -42,3 +42,45 @@ class TripResponse(BaseModel):
     cbd_congestion_fee: Decimal | None
 
     model_config = {"from_attributes": True}
+
+
+class TripsPerDayResponse(BaseModel):
+    """Response schema for daily trip counts."""
+
+    pickup_date: date
+    trip_count: int
+
+
+class TripsByPaymentTypeResponse(BaseModel):
+    """Response schema for trip counts by payment type."""
+
+    payment_type: int
+    trip_count: int
+
+
+class TripsByVendorResponse(BaseModel):
+    """Response schema for trip counts by vendor."""
+
+    vendor_id: int
+    trip_count: int
+
+
+class HourlyDemandResponse(BaseModel):
+    """Response schema for trip counts by pickup hour."""
+
+    pickup_hour: int
+    trip_count: int
+
+
+class TopPickupLocationResponse(BaseModel):
+    """Response schema for top pickup locations."""
+
+    pu_location_id: int
+    trip_count: int
+
+
+class TopDropoffLocationResponse(BaseModel):
+    """Response schema for top dropoff locations."""
+
+    do_location_id: int
+    trip_count: int
