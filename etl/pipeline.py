@@ -9,8 +9,9 @@ from etl.transform import transform_data
 from etl.validate import validate_data
 
 
-DEFAULT_RAW_FILE_PATH = Path("data/raw/yellow_tripdata_2026-01-sample-100.csv")
-
+DEFAULT_RAW_FILE_PATH = Path(
+    "data/raw/yellow_tripdata_2026-01-sample-100.csv"
+)
 
 def run_pipeline(
     file_path: str | Path = DEFAULT_RAW_FILE_PATH,
