@@ -65,6 +65,10 @@ sequenceDiagram
 
 ## Database Model
 
+The project stores processed taxi trips in a single PostgreSQL table: `yellow_taxi_trips`.
+
+Each row represents one completed NYC Yellow Taxi trip. Most fields come directly from the NYC TLC source dataset, including pickup/dropoff timestamps, location IDs, fare amounts, payment type, and trip distance. The ETL pipeline also adds derived analytics fields such as `pickup_date`, `pickup_hour`, `trip_duration_minutes`, and `fare_per_mile`.
+
 ```mermaid
 erDiagram
     YELLOW_TAXI_TRIPS {
@@ -85,42 +89,21 @@ erDiagram
         int do_location_id
         int payment_type
         numeric fare_amount
-        numeric extra
-        numeric mta_tax
         numeric tip_amount
-        numeric tolls_amount
-        numeric improvement_surcharge
         numeric total_amount
-        numeric congestion_surcharge
-        numeric airport_fee
-        numeric cbd_congestion_fee
     }
 ```
 
-```mermaid
-classDiagram
-    class YellowTaxiTrip {
-        +int id
-        +int vendor_id
-        +datetime tpep_pickup_datetime
-        +datetime tpep_dropoff_datetime
-        +date pickup_date
-        +int pickup_hour
-        +str pickup_day_name
-        +Decimal trip_duration_minutes
-        +int passenger_count
-        +Decimal trip_distance
-        +Decimal fare_per_mile
-        +int ratecode_id
-        +str store_and_fwd_flag
-        +int pu_location_id
-        +int do_location_id
-        +int payment_type
-        +Decimal fare_amount
-        +Decimal tip_amount
-        +Decimal total_amount
-    }
-```
+### Important Fields
+
+- `vendor_id` identifies the TLC TPEP technology provider that recorded the trip. It does not represent the taxi company, driver, or fleet operator.
+- `ratecode_id` describes the fare rate category used for the trip, such as standard rate, airport rate, or negotiated fare.
+- `payment_type` indicates how the passenger paid, such as credit card, cash, or another TLC-coded payment method.
+- `pu_location_id` identifies the taxi zone where the trip started.
+- `do_location_id` identifies the taxi zone where the trip ended.
+- `trip_distance` is the recorded trip distance in miles.
+- `fare_amount` is the base metered fare before tips, tolls, taxes, and surcharges.
+- `total_amount` is the final charged amount including fare, tips, tolls, taxes, and applicable surcharges.
 
 ## Key Engineering Decisions
 
